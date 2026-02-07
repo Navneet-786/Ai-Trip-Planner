@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button'
-import { SignInButton } from '@clerk/nextjs'
+import { SignInButton, UserAvatar, useUser } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
-import React from 'react'
+
 
 //Menu options
 const menuOptions = [
@@ -22,7 +22,7 @@ const menuOptions = [
 
 const Header = () => {
 
-
+const {user} = useUser();
 
   return (
     <div className='flex justify-between items-center pt-4 px-8'>
@@ -45,9 +45,16 @@ const Header = () => {
       ))}
       </div>
 
-      <SignInButton mode='modal'>
+     <div className='flex items-center gap-4'>
+       {!user?<SignInButton mode='modal'>
       <Button className='hover:scale-105 transition-all hover:shadow-2xl'>Get Started</Button>
-      </SignInButton>
+      </SignInButton>:
+      <Link href={"/create-trip"}>
+       <Button>+ Create New Trip</Button>
+      </Link>
+      }
+      {user&& <UserAvatar />}
+     </div>
     </div>
   )
 }
