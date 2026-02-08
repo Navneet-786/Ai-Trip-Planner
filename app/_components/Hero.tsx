@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 
 
-const suggestion = [
+export const suggestion = [
   {
     title:"Create New trip",
     icon: <Globe2 className="text-blue-500 h-5 w-5"/>
@@ -41,6 +41,7 @@ const Hero = () => {
       return;
     }
 
+    router.push("/create-new-trip")
     //navigate to create trip <planner></planner>
 
   }

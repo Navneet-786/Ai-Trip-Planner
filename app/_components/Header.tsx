@@ -49,7 +49,7 @@ const {user} = useUser();
        {!user?<SignInButton mode='modal'>
       <Button className='hover:scale-105 transition-all hover:shadow-2xl'>Get Started</Button>
       </SignInButton>:
-      <Link href={"/create-trip"}>
+      <Link href={"/create-new-trip"}>
        <Button>+ Create New Trip</Button>
       </Link>
       }
