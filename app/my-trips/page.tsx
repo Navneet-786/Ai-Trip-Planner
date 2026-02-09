@@ -134,6 +134,7 @@ const MyTrips = () => {
                 <img
                   src={"/Hotel1.jpg"}
                   alt="Trip"
+                   loading="lazy"
                   className="rounded-xl object-cover w-full h-56"
                 />
 
