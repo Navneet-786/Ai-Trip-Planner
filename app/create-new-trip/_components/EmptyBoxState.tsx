@@ -28,7 +28,7 @@ const EmptyBoxState = ({onSelectOption}:any) => {
       </p>
 
       {/* Suggestion List */}
-      <div className="flex flex-col w-[80%] gap-4 mt-6">
+      <div className="flex flex-col w-[80%] gap-4 mt-6 ">
         {suggestion.map((item, index) => (
           <div
             key={index}
@@ -38,7 +38,7 @@ const EmptyBoxState = ({onSelectOption}:any) => {
             }}
             className={clsx(
               "flex items-center gap-3 border rounded-lg p-3 cursor-pointer",
-              "transition-all duration-300 ease-in-out",
+              "transition-all duration-300 ease-in-out border-1 border-gray-500",
               "hover:shadow-lg",
               activeIndex === index
                 ? "translate-x-4 bg-primary/5 border-primary"

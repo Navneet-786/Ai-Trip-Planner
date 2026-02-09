@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button'
-import { SignInButton, UserAvatar, useUser } from '@clerk/nextjs'
+import { SignInButton, UserAvatar, UserButton, useUser } from '@clerk/nextjs'
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 
 //Menu options
@@ -23,9 +24,11 @@ const menuOptions = [
 const Header = () => {
 
 const {user} = useUser();
+const path = usePathname();
+
 
   return (
-    <div className='flex justify-between items-center pt-4 px-8'>
+    <div className='flex justify-between items-center pt-4 px-8 pb-4 border shadow-lg'>
 
 
       <div className='flex items-center gap-4'>
@@ -49,11 +52,16 @@ const {user} = useUser();
        {!user?<SignInButton mode='modal'>
       <Button className='hover:scale-105 transition-all hover:shadow-2xl'>Get Started</Button>
       </SignInButton>:
+      path == "/create-new-trip"?
+          <Link href={"/my-trips"}>
+       <Button className='cursor-pointer hover:scale-102 hover:shadow-lg focus:bg-pink-400  transition-all '>My Trips</Button>
+      </Link>
+      :
       <Link href={"/create-new-trip"}>
-       <Button>+ Create New Trip</Button>
+       <Button className='cursor-pointer hover:scale-102 hover:shadow-lg focus:bg-pink-600  transition-all '>+ Create New Trip</Button>
       </Link>
       }
-      {user&& <UserAvatar />}
+      {user&& <UserButton />}
      </div>
     </div>
   )

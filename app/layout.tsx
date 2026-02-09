@@ -22,7 +22,7 @@ export default function RootLayout({
 }> ) {
   return (
     <ClerkProvider>
-      <html lang="en"  className="white">
+      <html lang="en"  className="light">
         <body
           className={` ${outfit.className} antialiased`}
         >

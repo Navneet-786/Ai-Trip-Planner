@@ -60,6 +60,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { aj } from "../arcjet/route";
+import { useUser } from "@clerk/nextjs";
+import { useUserDetail } from "@/app/Provider";
+import { auth } from "@clerk/nextjs/server";
 
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
@@ -69,7 +73,7 @@ const openai = new OpenAI({
 // const prompt = `You are an AI Trip Planner Agent.
 // Ask ONE question at a time.
 // Return ONLY valid JSON like:
-// {
+// {                                  
 //   "resp": "text",
 //   "ui": "source/budget/groupSize/tripDuration/Final"
 // }
@@ -207,54 +211,484 @@ const openai = new OpenAI({
 // });
 
 
-const FINAL_PROMPT = `Generate Travel Plan with give details, give me Hotels options list with HotelName, 
-Hotel address, Price, hotel image url, geo coordinates, rating, descriptions and  suggest itinerary with placeName, Place Details, Place Image Url,
- Geo Coordinates,Place address, ticket Pricing, Time travel each of the location , with each day plan with best time to visit in JSON format.
- Output Schema:
- {
-  "trip_plan": {
-    "destination": "string",
-    "duration": "string",
-    "origin": "string",
-    "budget": "string",
-    "group_size": "string",
-    "hotels": [
-      {
-        "hotel_name": "string",
-        "hotel_address": "string",
-        "price_per_night": "string",
-        "hotel_image_url": "string",
-        "geo_coordinates": {
-          "latitude": "number",
-          "longitude": "number"
-        },
-        "rating": "number",
-        "description": "string"
-      }
-    ],
-    "itinerary": [
-      {
-        "day": "number",
-        "day_plan": "string",
-        "best_time_to_visit_day": "string",
-        "activities": [
-          {
-            "place_name": "string",
-            "place_details": "string",
-            "place_image_url": "string",
-            "geo_coordinates": {
-              "latitude": "number",
-              "longitude": "number"
-            },
-            "place_address": "string",
-            "ticket_pricing": "string",
-            "time_travel_each_location": "string",
-            "best_time_to_visit": "string"
-          }
-        ]
-      }
-    ]
-}}`
+// const FINAL_PROMPT = `Generate Travel Plan with give details, give me Hotels options list with HotelName, 
+// Hotel address, Price, hotel image url, geo coordinates, rating, descriptions and  suggest itinerary with placeName, Place Details, Place Image Url,
+//  Geo Coordinates,Place address, ticket Pricing, Time travel each of the location , with each day plan with best time to visit in JSON format.
+//  Output Schema:
+//  {
+//   "trip_plan": {
+//     "destination": "string",
+//     "duration": "string",
+//     "origin": "string",
+//     "budget": "string",
+//     "group_size": "string",
+//     "hotels": [
+//       {
+//         "hotel_name": "string",
+//         "hotel_address": "string",
+//         "price_per_night": "string",
+//         "hotel_image_url": "string",
+//         "geo_coordinates": {
+//           "latitude": "number",
+//           "longitude": "number"
+//         },
+//         "rating": "number",
+//         "description": "string"
+//       }
+//     ],
+//     "itinerary": [
+//       {
+//         "day": "number",
+//         "day_plan": "string",
+//         "best_time_to_visit_day": "string",
+//         "activities": [
+//           {
+//             "place_name": "string",
+//             "place_details": "string",
+//             "place_image_url": "string",
+//             "geo_coordinates": {
+//               "latitude": "number",
+//               "longitude": "number"
+//             },
+//             "place_address": "string",
+//             "ticket_pricing": "string",
+//             "time_travel_each_location": "string",
+//             "best_time_to_visit": "string"
+//           }
+//         ]
+//       }
+//     ]
+// }}`
+
+
+// type Step =
+//   | "source"
+//   | "destination"
+//   | "groupSize"
+//   | "budget"
+//   | "tripDuration"
+//   | "interests"
+//   | "final";
+
+// const NEXT_STEP: Record<Step, Step> = {
+//   source: "destination",
+//   destination: "groupSize",
+//   groupSize: "budget",
+//   budget: "tripDuration",
+//   tripDuration: "interests",
+//   interests: "final",
+//   final: "final",
+// };
+
+// function getFallbackQuestion(step: Step) {
+//   switch (step) {
+//     case "source":
+//       return "Where are you starting your trip from?";
+//     case "destination":
+//       return "Which city or country do you want to visit?";
+//     case "groupSize":
+//       return "Are you traveling solo, as a couple, with family, or friends?";
+//     case "budget":
+//       return "What is your budget? Low, Medium, or High?";
+//     case "tripDuration":
+//       return "How many days is your trip?";
+//     case "interests":
+//       return "What kind of trip do you prefer? Adventure, sightseeing, food, relaxation?";
+//     default:
+//       return "Please provide the required information.";
+//   }
+// }
+
+// function isValidAnswer(step: Step, answer: string) {
+//   if (!answer || answer.trim().length === 0) return false;
+//   const val = answer.trim().toLowerCase();
+//   if (step === "groupSize") return ["solo", "couple", "family", "friends"].some(v => val.includes(v));
+//   if (step === "budget") return ["low", "medium", "high","cheap", "moderate","luxury"].some(v => val.includes(v));
+//   return true;
+// }
+
+// export async function POST(req: NextRequest) {
+//   try {
+//     const { step = "source", answer = "", isFinal = false, messages = [] } = await req.json();
+
+//     // Validate answer for intermediate steps
+//     if (!isFinal && !isValidAnswer(step, answer)) {
+//       return NextResponse.json({
+//         resp: getFallbackQuestion(step),
+//         ui: step,
+//       });
+//     }
+
+//     // Final step: generate full trip plan
+//     if (isFinal || step === "final") {
+//       // Map messages to GPT format
+//       const gptMessages = [
+//         { role: "system", content: FINAL_PROMPT },
+//         ...messages.map((m: any) => ({ role: m.role, content: m.content })),
+//       ];
+
+//       const completion = await openai.chat.completions.create({
+//         model: "openai/gpt-4o-mini",
+//         messages: gptMessages,
+//         temperature: 0.3,
+//         response_format: { type: "json_object" }, // ensures JSON only
+//       });
+
+//       const aiResp = completion.choices[0]?.message?.content;
+
+//       if (!aiResp) {
+//         return NextResponse.json({ resp: "Failed to generate trip plan", ui: "final" });
+//       }
+
+//       let parsed;
+//       try {
+//         parsed = JSON.parse(aiResp); // strict JSON
+//       } catch {
+//         parsed = { resp: aiResp, ui: "final" };
+//       }
+
+//       return NextResponse.json(parsed);
+//     }
+
+//     // Intermediate steps: ask next question
+//     const nextStep = NEXT_STEP[step];
+//     const completion = await openai.chat.completions.create({
+//       model: "openai/gpt-4o-mini",
+//       messages: [
+//         { role: "system", content: `Ask ONE simple question to collect the "${nextStep}". Only ask the question.` },
+//       ],
+//       temperature: 0.3,
+//     });
+
+//     const resp = completion.choices[0]?.message?.content ?? getFallbackQuestion(nextStep);
+
+//     return NextResponse.json({ resp, ui: nextStep });
+//   } catch (err) {
+//     console.error(err);
+//     return NextResponse.json({ resp: "Something went wrong", ui: "source" }, { status: 500 });
+//   }
+// }
+
+
+
+
+// type Step =
+//   | "source"
+//   | "destination"
+//   | "groupSize"
+//   | "budget"
+//   | "tripDuration"
+//   | "interests"
+//   | "final";
+
+// const NEXT_STEP: Record<Step, Step> = {
+//   source: "destination",
+//   destination: "groupSize",
+//   groupSize: "budget",
+//   budget: "tripDuration",
+//   tripDuration: "interests",
+//   interests: "final",
+//   final: "final",
+// };
+
+// function getFallbackQuestion(step: Step) {
+//   switch (step) {
+//     case "source": return "Where are you starting your trip from?";
+//     case "destination": return "Which city or country do you want to visit?";
+//     case "groupSize": return "Are you traveling solo, as a couple, with family, or friends?";
+//     case "budget": return "What is your budget? Low, Medium, or High?";
+//     case "tripDuration": return "How many days is your trip?";
+//     case "interests": return "What kind of trip do you prefer? Adventure, sightseeing, food, relaxation?";
+//     default: return "Please provide the required information.";
+//   }
+// }
+
+// function isValidAnswer(step: Step, answer: string) {
+//   if (!answer || answer.trim().length === 0) return false;
+//   const val = answer.trim().toLowerCase();
+//   if (step === "groupSize") return ["solo", "couple", "family", "friends"].some(v => val.includes(v));
+//   if (step === "budget") return ["low", "medium", "high","cheap","moderate","luxury"].some(v => val.includes(v));
+//   return true;
+// }
+
+// export async function POST(req: NextRequest) {
+//   try {
+//     const { step = "source", answer = "", isFinal = false, messages = [], collected = {} } = await req.json();
+
+//     // Validate answer for intermediate steps
+//     if (!isFinal && !isValidAnswer(step, answer)) {
+//       return NextResponse.json({ resp: getFallbackQuestion(step), ui: step });
+//     }
+
+//     // Save the current answer in collected data
+//     const newCollected = { ...collected, [step]: answer };
+
+//     // Final step: generate trip plan
+//     if (isFinal || step === "final") {
+//       const { source, destination, groupSize, budget, tripDuration, interests } = newCollected;
+
+// //       const finalPrompt = `
+// // Generate a complete travel plan using these user details:
+
+// // Origin: ${source}
+// // Destination: ${destination}
+// // Group Size: ${groupSize}
+// // Budget: ${budget}
+// // Trip Duration: ${tripDuration}
+// // Travel Interests: ${interests}
+
+// // Include:
+// // - Hotels list with name, address, price, images, geo coordinates, rating, description
+// // - Day-wise itinerary with place names, details, images, coordinates, ticket pricing, travel time
+// // - Best time to visit each location
+
+// // Return ONLY JSON using this schema:
+// // {
+// //   "trip_plan": {
+// //     "destination": "string",
+// //     "duration": "string",
+// //     "origin": "string",
+// //     "budget": "string",
+// //     "group_size": "string",
+// //     "hotels": [
+// //       {
+// //         "hotel_name": "string",
+// //         "hotel_address": "string",
+// //         "price_per_night": "string",
+// //         "hotel_image_url": "string",
+// //         "geo_coordinates": {"latitude": 0, "longitude": 0},
+// //         "rating": 0,
+// //         "description": "string"
+// //       }
+// //     ],
+// //     "itinerary": [
+// //       {
+// //         "day": 1,
+// //         "day_plan": "string",
+// //         "best_time_to_visit_day": "string",
+// //         "activities": [
+// //           {
+// //             "place_name": "string",
+// //             "place_details": "string",
+// //             "place_image_url": "string",
+// //             "geo_coordinates": {"latitude": 0, "longitude": 0},
+// //             "place_address": "string",
+// //             "ticket_pricing": "string",
+// //             "time_travel_each_location": "string",
+// //             "best_time_to_visit": "string"
+// //           }
+// //         ]
+// //       }
+// //     ]
+// //   }
+// // }
+// // `;
+// const finalPrompt = `
+// You are a professional travel planner AI.
+// Generate a complete trip plan ONLY for the user-provided details below.
+// Do NOT replace the destination with any default or example.
+
+// User Details:
+// Origin: ${source}
+// Destination: ${destination}
+// Group Size: ${groupSize}
+// Budget: ${budget}
+// Trip Duration: ${tripDuration}
+// Travel Interests: ${interests}
+
+// Requirements:
+// - Include hotels with name, address, price, image URL, geo coordinates, rating, description.
+// - Create a day-wise itinerary with place names, details, images, coordinates, ticket pricing, travel time.
+// - Include best time to visit each location.
+// - Output MUST be JSON, strictly following this schema:
+
+// {
+//   "trip_plan": {
+//     "destination": "${destination}",
+//     "duration": "${tripDuration}",
+//     "origin": "${source}",
+//     "budget": "${budget}",
+//     "group_size": "${groupSize}",
+//     "hotels": [
+//       {
+//         "hotel_name": "string",
+//         "hotel_address": "string",
+//         "price_per_night": "string",
+//         "hotel_image_url": "string",
+//         "geo_coordinates": {"latitude": 0, "longitude": 0},
+//         "rating": 0,
+//         "description": "string"
+//       }
+//     ],
+//     "itinerary": [
+//       {
+//         "day": 1,
+//         "day_plan": "string",
+//         "best_time_to_visit_day": "string",
+//         "activities": [
+//           {
+//             "place_name": "string",
+//             "place_details": "string",
+//             "place_image_url": "string",
+//             "geo_coordinates": {"latitude": 0, "longitude": 0},
+//             "place_address": "string",
+//             "ticket_pricing": "string",
+//             "time_travel_each_location": "string",
+//             "best_time_to_visit": "string"
+//           }
+//         ]
+//       }
+//     ]
+//   }
+// }
+// `;
+
+//       const completion = await openai.chat.completions.create({
+//         model: "openai/gpt-4o-mini",
+//         messages: [
+//           { role: "system", content: finalPrompt }
+//         ],
+//         temperature: 0.3,
+//         response_format: { type: "json_object" },
+//       });
+
+//       const aiResp = completion.choices[0]?.message?.content;
+//       let parsed;
+
+//       try {
+//         parsed = JSON.parse(aiResp);
+//       } catch {
+//         parsed = { resp: aiResp, ui: "final" };
+//       }
+
+//       return NextResponse.json(parsed);
+//     }
+
+//     // Intermediate step: ask next question
+//     const nextStep = NEXT_STEP[step];
+//     return NextResponse.json({
+//       resp: getFallbackQuestion(nextStep),
+//       ui: nextStep,
+//       collected: newCollected
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     return NextResponse.json({ resp: "Something went wrong", ui: "source" }, { status: 500 });
+//   }
+// }
+
+
+
+
+// type Step =
+//   | "source"
+//   | "destination"
+//   | "groupSize"
+//   | "budget"
+//   | "tripDuration"
+//   | "interests"
+//   | "final";
+
+// const NEXT_STEP: Record<Step, Step> = {
+//   source: "destination",
+//   destination: "groupSize",
+//   groupSize: "budget",
+//   budget: "tripDuration",
+//   tripDuration: "interests",
+//   interests: "final",
+//   final: "final",
+// };
+
+// function getFallbackQuestion(step: Step) {
+//   switch (step) {
+//     case "source": return "Where are you starting your trip from?";
+//     case "destination": return "Which city or country do you want to visit?";
+//     case "groupSize": return "Are you traveling solo, as a couple, with family, or friends?";
+//     case "budget": return "What is your budget? Low, Medium, or High?";
+//     case "tripDuration": return "How many days is your trip?";
+//     case "interests": return "What kind of trip do you prefer? Adventure, sightseeing, food, relaxation?";
+//     default: return "Please provide the required information.";
+//   }
+// }
+
+// function isValidAnswer(step: Step, answer: string) {
+//   if (!answer || answer.trim().length === 0) return false;
+//   const val = answer.trim().toLowerCase();
+//   if (step === "groupSize") return ["solo", "couple", "family", "friends"].some(v => val.includes(v));
+//   if (step === "budget") return ["low", "medium", "high", "cheap", "moderate", "luxury"].some(v => val.includes(v));
+//   return true;
+// }
+// export async function POST(req: NextRequest) {
+//   try {
+//     const { step = "source", answer = "", isFinal = false, collected = {} } = await req.json();
+
+//     const newCollected = { ...collected };
+    
+//     // If this is not final, store current answer
+//     if(!isFinal && step !== "final" && answer) newCollected[step] = answer;
+
+//     if(isFinal || step === "final") {
+//       // check all required keys
+//       const requiredKeys = ["source","destination","groupSize","budget","tripDuration","interests"];
+//       for(let key of requiredKeys){
+//         if(!newCollected[key]){
+//           return NextResponse.json({
+//             resp: `Missing answer for ${key}`,
+//             ui: step,
+//             collected: newCollected
+//           });
+//         }
+//       }
+
+//       const { source, destination, groupSize, budget, tripDuration, interests } = newCollected;
+
+//       const finalPrompt = `
+// You are a professional travel planner AI.
+// Generate a complete trip plan ONLY using these details:
+
+// Origin: ${source}
+// Destination: ${destination}
+// Group Size: ${groupSize}
+// Budget: ${budget}
+// Trip Duration: ${tripDuration}
+// Travel Interests: ${interests}
+
+// Return strictly JSON following this schema:
+// ...
+// `;
+
+//       // Call AI (same as before)
+//       const completion = await openai.chat.completions.create({
+//         model: "openai/gpt-4o-mini",
+//         messages: [{ role: "system", content: finalPrompt }],
+//         temperature: 0.3,
+//         response_format: { type: "json_object" },
+//       });
+
+//       let aiResp = completion.choices[0]?.message?.content;
+//       let parsed;
+//       try { parsed = JSON.parse(aiResp); } 
+//       catch { parsed = { resp: aiResp, ui: "final" }; }
+
+//       return NextResponse.json(parsed);
+//     }
+
+//     // non-final step
+//     const nextStep = NEXT_STEP[step];
+//     return NextResponse.json({
+//       resp: getFallbackQuestion(nextStep),
+//       ui: nextStep,
+//       collected: newCollected
+//     });
+
+//   } catch (err) {
+//     console.error(err);
+//     return NextResponse.json({ resp: "Something went wrong", ui: "source" }, { status: 500 });
+//   }
+// }
+
+
+ 
 
 
 type Step =
@@ -278,67 +712,160 @@ const NEXT_STEP: Record<Step, Step> = {
 
 function getFallbackQuestion(step: Step) {
   switch (step) {
-    case "source":
-      return "Where are you starting your trip from?";
-    case "destination":
-      return "Which city or country do you want to visit?";
-    case "groupSize":
-      return "Are you traveling solo, as a couple, with family, or friends?";
-    case "budget":
-      return "What is your budget? Low, Medium, or High?";
-    case "tripDuration":
-      return "How many days is your trip?";
-    case "interests":
-      return "What kind of trip do you prefer? Adventure, sightseeing, food, relaxation?";
-    default:
-      return "Please provide the required information.";
+    case "source": return "Where are you starting your trip from?";
+    case "destination": return "Which city or country do you want to visit?";
+    case "groupSize": return "Are you traveling solo, as a couple, with family, or friends?";
+    case "budget": return "What is your budget? Low, Medium, or High?";
+    case "tripDuration": return "How many days is your trip?";
+    case "interests": return "What kind of trip do you prefer? Adventure, sightseeing, food, relaxation?";
+    default: return "Please provide the required information.";
   }
 }
 
+// CHANGE 1: Validate answer
 function isValidAnswer(step: Step, answer: string) {
   if (!answer || answer.trim().length === 0) return false;
   const val = answer.trim().toLowerCase();
   if (step === "groupSize") return ["solo", "couple", "family", "friends"].some(v => val.includes(v));
-  if (step === "budget") return ["low", "medium", "high","cheap", "moderate","luxury"].some(v => val.includes(v));
+  if (step === "budget") return ["low", "medium", "high", "cheap", "moderate", "luxury"].some(v => val.includes(v));
   return true;
 }
 
 export async function POST(req: NextRequest) {
+  
   try {
-    const { step = "source", answer = "", isFinal = false, messages = [] } = await req.json();
+    const { step = "source", answer = "", isFinal = false, collected = {} } = await req.json();
 
-    // Validate answer for intermediate steps
-    if (!isFinal && !isValidAnswer(step, answer)) {
+
+     const data =await auth();
+    const has = data?.has 
+    const hasPremiumAccess1 = has({ plan: 'monthy' })
+    const hasPremiumAccess2 = has({ plan: '6_months' })
+    const decision = await aj.protect(req, { userId:data?.userId, requested: isFinal?5:0 });
+   
+
+    if(decision?.reason?.remaining == 0 && !hasPremiumAccess1 && !hasPremiumAccess2){
       return NextResponse.json({
-        resp: getFallbackQuestion(step),
-        ui: step,
-      });
+        resp: "No Free Credit Remaining , Upgrade Your Plan",
+        ui: "limit"
+      })
     }
 
-    // Final step: generate full trip plan
-    if (isFinal || step === "final") {
-      // Map messages to GPT format
-      const gptMessages = [
-        { role: "system", content: FINAL_PROMPT },
-        ...messages.map((m: any) => ({ role: m.role, content: m.content })),
-      ];
+    const newCollected = { ...collected };
+    
+    // CHANGE 2: Store answer for non-final steps
+    // if(!isFinal && step !== "final" && answer) newCollected[step] = answer;
 
-      const completion = await openai.chat.completions.create({
-        model: "openai/gpt-4o-mini",
-        messages: gptMessages,
-        temperature: 0.3,
-        response_format: { type: "json_object" }, // ensures JSON only
-      });
+    if (!isFinal && step !== "final") {
 
-      const aiResp = completion.choices[0]?.message?.content;
+  // validate answer
+  if (step!="source" && !isValidAnswer(step, answer)) {
+    return NextResponse.json({
+      resp: `Sorry  I didn't quite get that.\n\n${getFallbackQuestion(step)}`,
+      ui: step,
+      collected: newCollected, // same data, no change
+    });
+  }
 
-      if (!aiResp) {
-        return NextResponse.json({ resp: "Failed to generate trip plan", ui: "final" });
+  // only store if valid
+  newCollected[step] = answer;
+
+  const nextStep = NEXT_STEP[step];
+
+  return NextResponse.json({
+    resp: getFallbackQuestion(nextStep),
+    ui: nextStep,
+    collected: newCollected,
+  });
+}
+
+
+    if(isFinal || step === "final") {
+      // CHANGE 3: Check all required keys
+      const requiredKeys = ["source","destination","groupSize","budget","tripDuration","interests"];
+      for(let key of requiredKeys){
+        if(!newCollected[key]){
+          return NextResponse.json({
+            resp: `Missing answer for ${key}`,
+            ui: step,
+            collected: newCollected
+          });
+        }
       }
 
+      const { source, destination, groupSize, budget, tripDuration, interests } = newCollected;
+
+      // CHANGE 4: Full strict JSON schema prompt for AI
+      const finalPrompt = `
+You are a professional travel planner AI.
+Generate a complete trip plan ONLY using these details:
+
+Origin: ${source}
+Destination: ${destination}
+Group Size: ${groupSize}
+Budget: ${budget}
+Trip Duration: ${tripDuration}
+Travel Interests: ${interests}
+
+Return strictly JSON following this schema:
+
+{
+  "trip_plan": {
+    "destination": "${destination}",
+    "duration": "${tripDuration}",
+    Note: Generaate Trip Data for exactly ${tripDuration} days
+    "origin": "${source}",
+    "budget": "${budget}",
+    "group_size": "${groupSize}",
+    "hotels": [
+      {
+        "hotel_name": "string",
+        "hotel_address": "string",
+        "price_per_night": "string",
+        "hotel_image_url": "string",
+        "geo_coordinates": {"latitude": 0, "longitude": 0},
+        "rating": 0,
+        "description": "string"
+      }
+    ],
+    "itinerary": [
+      {
+        "day": 1,
+        "day_plan": "string",
+        "best_time_to_visit_day": "string",
+        "activities": [
+          {
+            "place_name": "string",
+            "place_details": "string",
+            "place_image_url": "string",
+            "geo_coordinates": {"latitude": 0, "longitude": 0},
+            "place_address": "string",
+            "ticket_pricing": "string",
+            "time_travel_each_location": "string",
+            "best_time_to_visit": "string"
+          }
+        ]
+      }
+    ]
+  }
+}
+  make sure that atleast 4 to 5 hotels included and minimum 2 activities on each day 
+`;
+
+      // CHANGE 5: Call AI with GPT-4o-mini
+      const completion = await openai.chat.completions.create({
+        model: "openai/gpt-4o-mini",
+        messages: [{ role: "system", content: finalPrompt }],
+        temperature: 0.3,
+        response_format: { type: "json_object" }, // ensures GPT returns JSON
+      });
+
+      let aiResp = completion.choices[0]?.message?.content;
       let parsed;
       try {
-        parsed = JSON.parse(aiResp); // strict JSON
+        parsed = JSON.parse(aiResp); 
+        // CHANGE 6: Validate that AI returned correct schema
+        if(!parsed.trip_plan) throw new Error("trip_plan missing in AI response");
       } catch {
         parsed = { resp: aiResp, ui: "final" };
       }
@@ -346,22 +873,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(parsed);
     }
 
-    // Intermediate steps: ask next question
+    // Non-final step
     const nextStep = NEXT_STEP[step];
-    const completion = await openai.chat.completions.create({
-      model: "openai/gpt-4o-mini",
-      messages: [
-        { role: "system", content: `Ask ONE simple question to collect the "${nextStep}". Only ask the question.` },
-      ],
-      temperature: 0.3,
+    return NextResponse.json({
+      resp: getFallbackQuestion(nextStep),
+      ui: nextStep,
+      collected: newCollected
     });
 
-    const resp = completion.choices[0]?.message?.content ?? getFallbackQuestion(nextStep);
-
-    return NextResponse.json({ resp, ui: nextStep });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ resp: "Something went wrong", ui: "source" }, { status: 500 });
   }
 }
-
