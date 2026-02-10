@@ -81,7 +81,7 @@ const PlaceCardItem = ({ activity }: Props) => {
   }, [])
 
   return (
-    <div className="flex flex-col h-full rounded-xl   shadow-2xl hover:scale-110 hover:bg-[#EEEEEE] p-3  bg-white">
+    <div className="flex flex-col h-full rounded-xl   shadow-2xl hover:scale-102 transition duration-300  hover:bg-[#A3D8FF] p-3  bg-white">
       {/* IMAGE */}
       <div className="relative w-full h-[180px] mb-3">
         <Image

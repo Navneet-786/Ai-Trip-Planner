@@ -1,4 +1,4 @@
-import React from "react"
+
 import Chatbox from "./_components/ChatBox"
 import Iternary from "./_components/Iternary"
 
@@ -28,7 +28,7 @@ const CreateNewTrip = () => {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 p-5 h-full ">
         
         {/* CHAT COLUMN */}
-        <div className="md:col-span-2  border rounded-lg bg-slate-200 h-full pb-4 px-4 border shadow-lg">
+        <div className="md:col-span-2  border rounded-lg bg-[#ECFCFF] h-full pb-4 px-4 border shadow-lg">
           <Chatbox />
         </div>
 

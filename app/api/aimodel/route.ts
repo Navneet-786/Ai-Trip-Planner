@@ -7,6 +7,232 @@ import { useUser } from "@clerk/nextjs";
 import { useUserDetail } from "@/app/Provider";
 import { auth } from "@clerk/nextjs/server";
 
+
+
+//  Allow countries directly 
+const COUNTRIES = new Set([
+  "afghanistan",
+  "albania",
+  "algeria",
+  "andorra",
+  "angola",
+  "antigua and barbuda",
+  "argentina",
+  "armenia",
+  "australia",
+  "austria",
+  "azerbaijan",
+
+  "bahamas",
+  "bahrain",
+  "bangladesh",
+  "barbados",
+  "belarus",
+  "belgium",
+  "belize",
+  "benin",
+  "bhutan",
+  "bolivia",
+  "bosnia and herzegovina",
+  "botswana",
+  "brazil",
+  "brunei",
+  "bulgaria",
+  "burkina faso",
+  "burundi",
+
+  "cambodia",
+  "cameroon",
+  "canada",
+  "cape verde",
+  "central african republic",
+  "chad",
+  "chile",
+  "china",
+  "colombia",
+  "comoros",
+  "congo",
+  "costa rica",
+  "croatia",
+  "cuba",
+  "cyprus",
+  "czech republic",
+
+  "denmark",
+  "djibouti",
+  "dominica",
+  "dominican republic",
+
+  "ecuador",
+  "egypt",
+  "el salvador",
+  "equatorial guinea",
+  "eritrea",
+  "estonia",
+  "eswatini",
+  "ethiopia",
+
+  "fiji",
+  "finland",
+  "france",
+
+  "gabon",
+  "gambia",
+  "georgia",
+  "germany",
+  "ghana",
+  "greece",
+  "grenada",
+  "guatemala",
+  "guinea",
+  "guinea-bissau",
+  "guyana",
+
+  "haiti",
+  "honduras",
+  "hungary",
+
+  "iceland",
+  "india",
+  "indonesia",
+  "iran",
+  "iraq",
+  "ireland",
+  "israel",
+  "italy",
+
+  "jamaica",
+  "japan",
+  "jordan",
+
+  "kazakhstan",
+  "kenya",
+  "kiribati",
+  "kuwait",
+  "kyrgyzstan",
+
+  "laos",
+  "latvia",
+  "lebanon",
+  "lesotho",
+  "liberia",
+  "libya",
+  "liechtenstein",
+  "lithuania",
+  "luxembourg",
+
+  "madagascar",
+  "malawi",
+  "malaysia",
+  "maldives",
+  "mali",
+  "malta",
+  "marshall islands",
+  "mauritania",
+  "mauritius",
+  "mexico",
+  "micronesia",
+  "moldova",
+  "monaco",
+  "mongolia",
+  "montenegro",
+  "morocco",
+  "mozambique",
+  "myanmar",
+
+  "namibia",
+  "nauru",
+  "nepal",
+  "netherlands",
+  "new zealand",
+  "nicaragua",
+  "niger",
+  "nigeria",
+  "north korea",
+  "north macedonia",
+  "norway",
+
+  "oman",
+
+  "pakistan",
+  "palau",
+  "panama",
+  "papua new guinea",
+  "paraguay",
+  "peru",
+  "philippines",
+  "poland",
+  "portugal",
+
+  "qatar",
+
+  "romania",
+  "russia",
+  "rwanda",
+
+  "saint kitts and nevis",
+  "saint lucia",
+  "saint vincent and the grenadines",
+  "samoa",
+  "san marino",
+  "sao tome and principe",
+  "saudi arabia",
+  "senegal",
+  "serbia",
+  "seychelles",
+  "sierra leone",
+  "singapore",
+  "slovakia",
+  "slovenia",
+  "solomon islands",
+  "somalia",
+  "south africa",
+  "south korea",
+  "south sudan",
+  "spain",
+  "sri lanka",
+  "sudan",
+  "suriname",
+  "sweden",
+  "switzerland",
+  "syria",
+
+  "taiwan",
+  "tajikistan",
+  "tanzania",
+  "thailand",
+  "timor-leste",
+  "togo",
+  "tonga",
+  "trinidad and tobago",
+  "tunisia",
+  "turkey",
+  "turkmenistan",
+  "tuvalu",
+
+  "uganda",
+  "ukraine",
+  "united arab emirates",
+  "united kingdom",
+  "uk",
+  "united states",
+  "usa",
+  "uruguay",
+  "uzbekistan",
+
+  "vanuatu",
+  "vatican city",
+  "venezuela",
+  "vietnam",
+
+  "yemen",
+
+  "zambia",
+  "zimbabwe"
+]);
+
+
+
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -59,10 +285,60 @@ function getFallbackQuestion(step: Step) {
 function isValidAnswer(step: Step, answer: string) {
   if (!answer || answer.trim().length === 0) return false;
   const val = answer.trim().toLowerCase();
-  if (step === "groupSize") return ["solo", "couple", "family", "friends"].some(v => val.includes(v));
+  if (step === "groupSize") return ["solo","just me", "couple", "family", "friends"].some(v => val.includes(v));
   if (step === "budget") return ["low", "medium", "high", "cheap", "moderate", "luxury"].some(v => val.includes(v));
   return true;
 }
+
+
+async function isValidPlaceAI(place: string): Promise<boolean> {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "openai/gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "Answer strictly with yes or no. No punctuation.",
+        },
+        {
+          role: "user",
+          content: `Is "${place}" a real city or country name?`,
+        },
+      ],
+      temperature: 0,
+    });
+
+    const reply =
+      completion.choices[0]?.message?.content
+        ?.toLowerCase()
+        .trim();
+
+    return reply?.startsWith("yes") ?? false;
+  } catch {
+    return false;
+  }
+}
+
+
+
+function isValidTripDuration(answer: string): boolean {
+  if (!answer) return false;
+
+  const val = answer.toLowerCase().trim();
+
+  // number nikaal lo ( "5 days" → 5 )
+  const match = val.match(/\d+/);
+  if (!match) return false;
+
+  const days = Number(match[0]);
+
+  if (Number.isNaN(days)) return false;
+  if (days < 1 || days > 30) return false; // safe limit
+
+  return true;
+}
+
+
 
 export async function POST(req: NextRequest) {
   
@@ -104,20 +380,76 @@ export async function POST(req: NextRequest) {
     
   
 
-  if (!isFinal && step !== "final") {
-  // validate answer
-    if (step!="source" && !isValidAnswer(step, answer)) {
+//   if (!isFinal && step !== "final") {
+//   // validate answer
+//     if (step!="source" && !isValidAnswer(step, answer)) {
+//       return NextResponse.json({
+//         resp: `Sorry  I didn't quite get that.\n\n${getFallbackQuestion(step)}`,
+//         ui: step,
+//         collected: newCollected, // same data, no change
+//       });
+//   }
+
+//   // only store if valid
+//   newCollected[step] = answer;
+
+//   const nextStep = NEXT_STEP[step as Step];
+
+//   return NextResponse.json({
+//     resp: getFallbackQuestion(nextStep),
+//     ui: nextStep,
+//     collected: newCollected,
+//   });
+// }
+
+if (!isFinal && step !== "final") {
+
+  // SOURCE ke liye koi validation nahi
+  if (step !== "source") {
+
+    // 🔥 DESTINATION special validation
+   if (step === "destination") {
+      const value = answer.trim().toLowerCase();
+
+      // ✅ Country → directly allow
+      if (!COUNTRIES.has(value)) {
+        // 🔍 City → AI validation
+        const isRealCity = await isValidPlaceAI(answer);
+
+        if (!isRealCity) {
+          return NextResponse.json({
+            resp: "Please enter a valid city or country name (e.g. Paris, Tokyo, India).",
+            ui: "destination",
+            collected: newCollected,
+          });
+        }
+      }
+
+    }
+    else if (step === "tripDuration") {
+      if (!isValidTripDuration(answer)) {
+        return NextResponse.json({
+          resp: "Please enter a valid trip duration (e.g. 3 days, 5, 7 days). Max 30 days allowed.",
+          ui: "tripDuration",
+          collected: newCollected,
+        });
+      }
+    }
+
+    // 🔹 baaki steps norma l validation
+    else if (!isValidAnswer(step, answer)) {
       return NextResponse.json({
-        resp: `Sorry  I didn't quite get that.\n\n${getFallbackQuestion(step)}`,
+        resp: `Sorry I didn't quite get that.\n\n${getFallbackQuestion(step)}`,
         ui: step,
-        collected: newCollected, // same data, no change
+        collected: newCollected,
       });
+    }
   }
 
-  // only store if valid
+  // ✅ validation pass → store answer
   newCollected[step] = answer;
 
-  const nextStep = NEXT_STEP[step as Step];
+  const nextStep = NEXT_STEP[step];
 
   return NextResponse.json({
     resp: getFallbackQuestion(nextStep),
@@ -125,6 +457,7 @@ export async function POST(req: NextRequest) {
     collected: newCollected,
   });
 }
+
 
 if(isFinal || step === "final") {
       // CHANGE 3: Check all required keys

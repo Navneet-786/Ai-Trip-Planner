@@ -209,7 +209,7 @@ const ChatBox = () => {
 
   return (
     <div className='h-[80vh] flex flex-col '>
-      <section className='flex-1 overflow-y-auto p-4 rounded-lg no-scrollbar'>
+      <section className='flex-1 overflow-y-auto p-4 rounded-lg no-scrollbar mt-4'>
         {messages.length === 0 && <EmptyBoxState onSelectOption={(v: string) => { setUserInput(v) }} />}
         {messages.map((msg, index) =>
           msg.role === "user" ?
@@ -232,7 +232,7 @@ const ChatBox = () => {
       <section className="flex justify-center">
         <div className="w-full max-w-2xl mt-10 flex flex-col gap-4 relative">
           <Textarea
-            placeholder="start typing here..."
+            placeholder={step=="source"?"Say hi...":"Double click or Write Something...."}
             className="w-full h-32 bg-background border border-border rounded-md shadow-md focus:border-primary focus-visible:ring-0 resize-none px-4 py-3 text-base"
             onChange={(e) => setUserInput(e.target.value ?? "")}
             value={userInput}
@@ -243,7 +243,7 @@ const ChatBox = () => {
               }
             }}
           />
-          <Button size={"icon"} className="absolute bottom-4 right-4 cursor-pointer hover:shadow-2xl" onClick={() => sendHandle()}>
+          <Button size={"icon"} className="absolute bottom-4 right-4 hover:cursor-pointer hover:shadow-2xl " onClick={() => sendHandle()}>
             <Send className="h-4 w-4" />
           </Button>
         </div>

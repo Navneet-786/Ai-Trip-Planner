@@ -30,21 +30,9 @@ const imageSrc =
       : null
 
 
-  // const GetGooglePlaceDetail = async()=>{
-  //   const result = await axios.post("/api/google-place-detail",{
-  //     placeName:hotel?.hotel_name
-  //   }) 
-  //   console.log(result?.data)
-  // }
-
-
-  // useEffect(()=>{
-  //  hotel && GetGooglePlaceDetail();
-  // },[hotel])
-
   return (
-    <div  className='my-4 flex-col gap-4   shadow-2xl hover:scale-110 hover:bg-[#EEEEEE] p-3 transition-all 0.2s rounded-lg bg-white'>
-                {imageSrc && <Image src={imageSrc}  className="rounded-2xl shadow-lg  object-cover mb-2 "alt='place-image' width={400} height={200}/>}
+    <div  className='my-4 flex-col gap-4    shadow-2xl hover:scale-102 hover:bg-[#A3D8FF] p-3 transition duration-300 rounded-lg bg-white hover:border-2 hover:border-[#3B0270]'>
+                {imageSrc && <Image src={imageSrc || "/hotel3.jpg"}  className="rounded-2xl shadow-lg  object-cover mx-auto mb-4 "alt='place-image' width={250} height={150}/>}
                 <h2 className='font-semibold text-lg text-black'>{hotel?.hotel_name}</h2>
                 <h2 className='font-semibold text-gray-500 text-sm'>{hotel?.hotel_address}</h2>
     

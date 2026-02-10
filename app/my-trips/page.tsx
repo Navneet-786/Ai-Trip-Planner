@@ -48,7 +48,6 @@ const MyTrips = () => {
     });
 
     setMyTrips(result);
-   
   };
 
   useEffect(() => {
@@ -56,12 +55,14 @@ const MyTrips = () => {
   }, [userDetail]);
 
   return (
-    <div className="px-6 py-10 max-w-full mx-auto  flex justify-center items-center flex-col">
-      <h2 className="text-3xl font-bold mb-6">My Trips History</h2>
+    <div className="px-4 py-10 w-full max-w-7xl mx-auto flex flex-col">
+      <h2 className="text-3xl font-bold mb-6 text-center">
+        My Trips History
+      </h2>
 
       {/* EMPTY STATE */}
       {myTrips.length === 0 && (
-        <Card className="text-center py-10 bg-gradient-to-r from-pink-50 to-sky-100 w-[70%]">
+        <Card className="text-center py-10 bg-gradient-to-r from-pink-50 to-sky-100 w-full">
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
               You haven’t created any trip plans yet.
@@ -75,50 +76,63 @@ const MyTrips = () => {
 
       {/* TABLE */}
       {myTrips.length > 0 && (
-        <Card className="bg-gradient-to-r from-pink-200 to-sky-200  w-[70%]">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader >
-                <TableRow className="text-xl border-1 border-b-black " >
-                  <TableHead>Destination</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Group</TableHead>
-                  <TableHead>Budget</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {myTrips.map((trip) => (
-                  <TableRow
-                    key={trip._id}
-                    className="cursor-pointer hover:bg-muted"
-                    onClick={() => setSelectedTrip(trip)}
-                  >
-                    <TableCell className="font-medium">
-                      {trip.tripDetail.destination}
-                    </TableCell>
-                    <TableCell>
-                      {trip.tripDetail.duration} days
-                    </TableCell>
-                    <TableCell>
-                      {trip.tripDetail.group_size}
-                    </TableCell>
-                    <TableCell>
-                      {trip.tripDetail.budget}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">Planned</Badge>
-                    </TableCell>
+        <Card className="bg-gradient-to-r from-pink-200 to-sky-200 w-full">
+          <CardContent className="p-0 overflow-x-auto">
+            {/* 👇 MOBILE SCROLL WRAPPER */}
+            <div className="min-w-[700px] md:min-w-full">
+              <Table>
+                <TableHeader className="sticky top-0 bg-white z-10">
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">
+                      Destination
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap">
+                      Duration
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap">
+                      Group
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap">
+                      Budget
+                    </TableHead>
+                    <TableHead className="whitespace-nowrap">
+                      Status
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+
+                <TableBody>
+                  {myTrips.map((trip) => (
+                    <TableRow
+                      key={trip._id}
+                      className="cursor-pointer hover:bg-muted"
+                      onClick={() => setSelectedTrip(trip)}
+                    >
+                      <TableCell className="font-medium whitespace-nowrap">
+                        {trip.tripDetail.destination}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {trip.tripDetail.duration} days
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {trip.tripDetail.group_size}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {trip.tripDetail.budget}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">Planned</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* DETAIL CARD (DIALOG) */}
+      {/* DETAIL DIALOG */}
       <Dialog open={!!selectedTrip} onOpenChange={() => setSelectedTrip(null)}>
         <DialogContent className="max-w-3xl">
           {selectedTrip && (
@@ -130,15 +144,13 @@ const MyTrips = () => {
               </DialogHeader>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                {/* IMAGE */}
                 <img
-                  src={"/Hotel1.jpg"}
+                  src="/Hotel1.jpg"
                   alt="Trip"
-                   loading="lazy"
+                  loading="lazy"
                   className="rounded-xl object-cover w-full h-56"
                 />
 
-                {/* DETAILS */}
                 <div className="space-y-3 text-sm">
                   <p>
                     <strong>Origin:</strong>{" "}

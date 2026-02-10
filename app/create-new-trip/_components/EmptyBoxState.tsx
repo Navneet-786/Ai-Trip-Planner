@@ -35,13 +35,14 @@ const EmptyBoxState = ({onSelectOption}:any) => {
             onClick={() => {
               setActiveIndex(index);
               onSelectOption(item?.title)
+              
             }}
             className={clsx(
               "flex items-center gap-3 border rounded-lg p-3 cursor-pointer",
-              "transition-all duration-300 ease-in-out border-1 border-gray-500",
-              "hover:shadow-lg",
+              "transition-all duration-300 ease-in-out shadow-lg hover:scale-101",
+              "hover:shadow-lg bg-[#94ADD7] text-white",
               activeIndex === index
-                ? "translate-x-4 bg-primary/5 border-primary"
+                ? "translate-x-4 text-white border-[#94ADD7] bg-[#94ADD7]"
                 : "translate-x-0"
             )}
            
@@ -57,7 +58,7 @@ const EmptyBoxState = ({onSelectOption}:any) => {
 
             <h2
               className={clsx(
-                "text-base md:text-lg transition-colors duration-300",
+                "text-white md:text-lg transition-colors duration-300",
                 activeIndex === index
                   ? "text-primary font-semibold"
                   : "text-slate-600"
