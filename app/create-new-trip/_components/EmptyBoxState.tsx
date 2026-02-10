@@ -13,10 +13,10 @@ const EmptyBoxState = ({onSelectOption}:any) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center text-center gap-3 px-4">
+    <div className="h-full w-full flex flex-col items-center  text-center gap-3 px-4 py-4">
       
       <h2
-        className={`font-bold text-xl md:text-2xl text-slate-400 ${nunito.className}`}
+        className={`font-bold text-xl md:text-2xl text-slate-400 py-8 ${nunito.className}`}
       >
         Start Planning a <span className="text-primary">New Trip</span> Using AI
       </h2>
@@ -28,7 +28,7 @@ const EmptyBoxState = ({onSelectOption}:any) => {
       </p>
 
       {/* Suggestion List */}
-      <div className="flex flex-col w-[80%] gap-4 mt-6 ">
+      <div className="flex flex-col w-[100%] gap-4 mt-6 ">
         {suggestion.map((item, index) => (
           <div
             key={index}

@@ -209,7 +209,7 @@ const ChatBox = () => {
 
   return (
     <div className='h-[80vh] flex flex-col '>
-      <section className='flex-1 overflow-y-auto p-4 rounded-lg no-scrollbar mt-4'>
+      <section className='flex-1 overflow-y-auto px-0 rounded-lg no-scrollbar mt-4'>
         {messages.length === 0 && <EmptyBoxState onSelectOption={(v: string) => { setUserInput(v) }} />}
         {messages.map((msg, index) =>
           msg.role === "user" ?
