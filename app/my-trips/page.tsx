@@ -48,7 +48,7 @@ const MyTrips = () => {
     });
 
     setMyTrips(result);
-    console.log(result)
+   
   };
 
   useEffect(() => {

@@ -2,6 +2,7 @@
 
 import { SignIn } from "@clerk/nextjs";
 
+
 export default function Page() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-pink-50">
@@ -17,7 +18,7 @@ export default function Page() {
           routing="path"
           path="/sign-in"
           appearance={{
-            baseTheme: "light",
+       
             variables: {
               colorPrimary: "#ec4899", // Tailwind pink-500
               colorText: "#111827",

@@ -62,7 +62,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 type Props = {
-  activity: Activity
+  activity: Activity,
+  imageIndex: number;
 }
 
 const PLACE_IMAGES = [

@@ -59,7 +59,6 @@ import Header from "./_components/Header";
 import { UserDetailContext } from "@/context/UserDetailContext";
 import { TripContextType, TripDetailContext } from "@/context/TripDetailContext";
 import { TripInfo } from "./create-new-trip/_components/ChatBox";
-import { div } from 'motion/react-client';
 
 const Provider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useUser();
@@ -101,6 +100,10 @@ export default Provider;
 export const useUserDetail = () => useContext(UserDetailContext);
 
 
-export const useTripDetail=():TripContextType|undefined=>{
-  return useContext(TripDetailContext);
+export const useTripDetail=():TripContextType=>{
+  const context = useContext(TripDetailContext);
+  if (!context) {
+    throw new Error("useTripDetail must be used within TripDetailContext.Provider");
+  }
+  return context;
 }

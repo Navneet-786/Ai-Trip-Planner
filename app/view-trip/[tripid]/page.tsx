@@ -28,7 +28,6 @@ const ViewTrip = () => {
         tripid,
       });
 
-      console.log(result[0]?.tripDetail);
       setTripDetailInfo(result[0]?.tripDetail)
       setTripData(result[0]?.tripDetail);
 
@@ -52,8 +51,7 @@ const ViewTrip = () => {
   }
 
 
-console.log("tripdetail info: ",tripDetailInfo)
-console.log("trip Data:",tripData)
+
   
  return (
   <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
@@ -127,6 +125,7 @@ console.log("trip Data:",tripData)
                     <img
                       src={"/advent1.jpg"}
                       alt={act.place_name}
+                       loading="lazy"
                       className="w-24 h-24 rounded-lg object-cover"
                     />
 

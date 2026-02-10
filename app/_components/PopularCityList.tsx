@@ -47,7 +47,7 @@ const data = [
 ];
 
 /** Card Component with overlay text */
-const Card = ({ card }) => {
+const Card = ({ card }:any) => {
   return (
     <div
       className={clsx(
@@ -62,6 +62,7 @@ const Card = ({ card }) => {
           src={card.src}
           alt={card.title}
           fill
+          
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 340px"
         />

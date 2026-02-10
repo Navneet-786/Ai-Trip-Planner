@@ -53,6 +53,8 @@ export type Hotel = {
   description: string
 }
 
+
+
 // Activity type
 export type Activity = {
   place_name: string,
@@ -187,7 +189,11 @@ const ChatBox = () => {
     } else if (ui === "tripDuration") {
       return <TripDuration onSelectedOption={(e: string) => { setUserInput(e); sendHandle() }} />
     } else if (ui === "final") {
-      return <PlanningTripUi loading={loading} onViewTrip={handleViewTrip} disable={tripDetail} />
+      return  <PlanningTripUi
+            loading={loading}
+            onViewTrip={handleViewTrip}
+            disable={!!tripDetail}
+            />
     }
     return null
   }

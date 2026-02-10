@@ -12,6 +12,7 @@
     "@arcjet/inspect": "^1.1.0",
     "@arcjet/next": "^1.1.0",
     "@clerk/nextjs": "^6.37.3",
+    "@clerk/themes": "^2.4.51",
     "@tabler/icons-react": "^3.36.1",
     "axios": "^1.13.4",
     "class-variance-authority": "^0.7.1",

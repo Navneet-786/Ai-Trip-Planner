@@ -2,12 +2,13 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader } from 'lucide-react'
 
-interface Props {
-  onViewTrip: () => void
-  loading?: boolean
-}
+type Props = {
+  loading: boolean;
+  onViewTrip: () => Promise<void>;
+  disable?: boolean;
+};
 
-const PlanningTripUi: React.FC<Props> = ({ onViewTrip, loading ,disable}:any) => {
+const PlanningTripUi: React.FC<Props> = ({ onViewTrip, loading ,disable}:Props) => {
   return (
     <div className='flex flex-col items-center justify-center mt-4 p-4'>
       {loading ? (
